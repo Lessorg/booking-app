@@ -124,9 +124,8 @@ class AuthenticationServiceTests {
     void register_UserEmailExists_ThrowsRegistrationException() throws RegistrationException {
         when(userRepository.existsByEmail(registrationRequest.email())).thenReturn(true);
 
-        RegistrationException exception = assertThrows(RegistrationException.class, () -> {
-            authenticationService.register(registrationRequest);
-        });
+        RegistrationException exception = assertThrows(RegistrationException.class,
+                () -> authenticationService.register(registrationRequest));
 
         assertEquals("Can't register user with email test@example.com, email already exists",
                 exception.getMessage());
@@ -160,9 +159,8 @@ class AuthenticationServiceTests {
 
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
-            authenticationService.updateUserRole(1L, request);
-        });
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> authenticationService.updateUserRole(1L, request));
 
         assertEquals("Can't find user by id: 1", exception.getMessage());
     }

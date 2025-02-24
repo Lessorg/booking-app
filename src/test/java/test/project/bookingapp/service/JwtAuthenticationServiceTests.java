@@ -15,10 +15,10 @@ class JwtAuthenticationServiceTests {
     private String validToken;
     private String invalidToken;
     private final String secret = "testsecretkeyforjwttokengenerationtestsecretkeyforjwttoken";
-    private final long expiration = 60000L;
 
     @BeforeEach
     void setUp() {
+        long expiration = 60000L;
         jwtAuthenticationService = new JwtAuthenticationService(secret, expiration);
         validToken = jwtAuthenticationService.generateToken("testuser");
         invalidToken = "invalid.token.here";
@@ -40,9 +40,8 @@ class JwtAuthenticationServiceTests {
     @Test
     @DisplayName("Validate token should throw JwtException for an invalid token")
     void isValidToken_InvalidToken_ThrowsJwtException() {
-        JwtException exception = assertThrows(JwtException.class, () -> {
-            jwtAuthenticationService.isValidToken(invalidToken);
-        });
+        JwtException exception = assertThrows(JwtException.class,
+                () -> jwtAuthenticationService.isValidToken(invalidToken));
         assertEquals("Expired or invalid JWT token", exception.getMessage());
     }
 
@@ -55,9 +54,8 @@ class JwtAuthenticationServiceTests {
     @Test
     @DisplayName("Get username should throw JwtException for an invalid token")
     void getUsername_InvalidToken_ThrowsJwtException() {
-        assertThrows(JwtException.class, () -> {
-            jwtAuthenticationService.getUsername(invalidToken);
-        });
+        assertThrows(JwtException.class,
+                () -> jwtAuthenticationService.getUsername(invalidToken));
     }
 
     @Test
