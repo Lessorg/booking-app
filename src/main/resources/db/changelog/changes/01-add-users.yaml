@@ -1,0 +1,166 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-roles-table
+      author: Nikolai
+      changes:
+        - createTable:
+            tableName: roles
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+  - changeSet:
+      id: create-users-table
+      author: Nikolai
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: email
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: password
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: first_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: create-users-roles-table
+      author: Nikolai
+      changes:
+        - createTable:
+            tableName: users_roles
+            columns:
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_users_roles_user
+                    references: users(id)
+                    onDelete: CASCADE
+              - column:
+                  name: role_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_users_roles_role
+                    references: roles(id)
+                    onDelete: CASCADE
+        - addPrimaryKey:
+            tableName: users_roles
+            columnNames: user_id, role_id
+
+  - changeSet:
+      id: insert-roles
+      author: Nikolai
+      changes:
+        - insert:
+            tableName: roles
+            columns:
+              - column: { name: id, value: 1 }
+              - column: { name: name, value: "ROLE_ADMIN" }
+        - insert:
+            tableName: roles
+            columns:
+              - column: { name: id, value: 2 }
+              - column: { name: name, value: "ROLE_CUSTOMER" }
+
+  - changeSet:
+      id: insert-users
+      author: Nikolai
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: id, value: 1 }
+              - column: { name: email, value: "admin@example.com" }
+              - column: { name: password, value: "$2a$10$o7sOVMMYSjggP/2SyOUdcuyBHQtEydduH2md.9b3uXsdOG4uwWW6m" }
+              - column: { name: first_name, value: "Admin" }
+              - column: { name: last_name, value: "User" }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: id, value: 2 }
+              - column: { name: email, value: "customer1@example.com" }
+              - column: { name: password, value: "$2a$10$acSPlYoQ7qNbNuH2jxjUPOGqsnx.b5NwwYHfTbriSVnYm/ln/oiji" }
+              - column: { name: first_name, value: "John" }
+              - column: { name: last_name, value: "Doe" }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: id, value: 3 }
+              - column: { name: email, value: "customer2@example.com" }
+              - column: { name: password, value: "$2a$10$MtwGRYjV7sL9zbqCtC6Ve.xRZGchLCcrWCboLCpj/D4mMCIgZrQJq" }
+              - column: { name: first_name, value: "Jane" }
+              - column: { name: last_name, value: "Smith" }
+
+  - changeSet:
+      id: assign-roles-to-users
+      author: Nikolai
+      changes:
+        - insert:
+            tableName: users_roles
+            columns:
+              - column: { name: user_id, value: 1 }
+              - column: { name: role_id, value: 1 }
+        - insert:
+            tableName: users_roles
+            columns:
+              - column: { name: user_id, value: 2 }
+              - column: { name: role_id, value: 2 }
+        - insert:
+            tableName: users_roles
+            columns:
+              - column: { name: user_id, value: 3 }
+              - column: { name: role_id, value: 2 }
+
+  - changeSet:
+      id: update-user-id-sequence
+      author: Nikolai
+      changes:
+        - sql:
+            dbms: postgresql
+            splitStatements: false
+            sql: |
+              SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
+
+  - changeSet:
+      id: update-role-id-sequence
+      author: Nikolai
+      changes:
+        - sql:
+            dbms: postgresql
+            splitStatements: false
+            sql: |
+              SELECT setval('roles_id_seq', (SELECT MAX(id) FROM roles));

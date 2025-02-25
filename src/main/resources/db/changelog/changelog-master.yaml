@@ -1,22 +1,3 @@
 databaseChangeLog:
-  - changeSet:
-      id: 1
-      author: your-name
-      changes:
-        - createTable:
-            tableName: users
-            columns:
-              - column:
-                  name: id
-                  type: bigint
-                  autoIncrement: true
-                  constraints:
-                    primaryKey: true
-              - column:
-                  name: name
-                  type: varchar(255)
-              - column:
-                  name: email
-                  type: varchar(255)
-                  constraints:
-                    unique: true
+  - include:
+      file: db/changelog/changes/01-add-users.yaml
