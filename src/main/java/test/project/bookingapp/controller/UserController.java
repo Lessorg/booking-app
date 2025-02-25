@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import test.project.bookingapp.dto.UserResponseDto;
-import test.project.bookingapp.dto.UserRoleUpdateRequestDto;
-import test.project.bookingapp.dto.UserRoleUpdateResponseDto;
-import test.project.bookingapp.dto.UserUpdateRequestDto;
+import test.project.bookingapp.dto.userdtos.UserResponseDto;
+import test.project.bookingapp.dto.userdtos.UserRoleUpdateRequestDto;
+import test.project.bookingapp.dto.userdtos.UserRoleUpdateResponseDto;
+import test.project.bookingapp.dto.userdtos.UserUpdateRequestDto;
 import test.project.bookingapp.model.User;
 import test.project.bookingapp.service.AuthenticationService;
 

@@ -1,6 +1,6 @@
-package test.project.bookingapp.dto;
+package test.project.bookingapp.dto.userdtos;
 
 import java.util.Set;
-import test.project.bookingapp.model.RoleName;
+import test.project.bookingapp.model.role.RoleName;
 
 public record UserRoleUpdateResponseDto(Long userId, Set<RoleName> roles) {}

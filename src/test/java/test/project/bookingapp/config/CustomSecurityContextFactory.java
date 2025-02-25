@@ -6,9 +6,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
-import test.project.bookingapp.model.Role;
-import test.project.bookingapp.model.RoleName;
 import test.project.bookingapp.model.User;
+import test.project.bookingapp.model.role.Role;
+import test.project.bookingapp.model.role.RoleName;
 
 public class CustomSecurityContextFactory
         implements WithSecurityContextFactory<WithMockCustomUser> {

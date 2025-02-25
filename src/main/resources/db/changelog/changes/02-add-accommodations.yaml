@@ -1,0 +1,152 @@
+  databaseChangeLog:
+    - changeSet:
+        id: create-accommodations-table
+        author: Nikolai
+        changes:
+          - createTable:
+              tableName: accommodations
+              columns:
+                - column:
+                    name: id
+                    type: bigserial
+                    constraints:
+                      primaryKey: true
+                      nullable: false
+                - column:
+                    name: type
+                    type: varchar(50)
+                    constraints:
+                      nullable: false
+                - column:
+                    name: location
+                    type: varchar(255)
+                    constraints:
+                      nullable: false
+                - column:
+                    name: size
+                    type: varchar(50)
+                    constraints:
+                      nullable: false
+                - column:
+                    name: daily_rate
+                    type: numeric(10,2)
+                    constraints:
+                      nullable: false
+                - column:
+                    name: availability
+                    type: integer
+                    constraints:
+                      nullable: false
+
+    - changeSet:
+        id: create-accommodation-amenities-table
+        author: Nikolai
+        changes:
+          - createTable:
+              tableName: accommodation_amenities
+              columns:
+                - column:
+                    name: accommodation_id
+                    type: bigserial
+                    constraints:
+                      nullable: false
+                      foreignKeyName: fk_accommodation_amenities
+                      references: accommodations(id)
+                      onDelete: CASCADE
+                - column:
+                    name: amenity
+                    type: varchar(255)
+                    constraints:
+                      nullable: false
+
+    - changeSet:
+        id: insert-accommodations
+        author: Nikolai
+        changes:
+          - insert:
+              tableName: accommodations
+              columns:
+                - column: { name: id, value: 1 }
+                - column: { name: type, value: "HOUSE" }
+                - column: { name: location, value: "123 Main St, Springfield" }
+                - column: { name: size, value: "3 Bedroom" }
+                - column: { name: daily_rate, value: 150.00 }
+                - column: { name: availability, value: 5 }
+          - insert:
+              tableName: accommodations
+              columns:
+                - column: { name: id, value: 2 }
+                - column: { name: type, value: "APARTMENT" }
+                - column: { name: location, value: "456 Elm St, New York" }
+                - column: { name: size, value: "1 Bedroom" }
+                - column: { name: daily_rate, value: 100.00 }
+                - column: { name: availability, value: 3 }
+          - insert:
+              tableName: accommodations
+              columns:
+                - column: { name: id, value: 3 }
+                - column: { name: type, value: "VACATION_HOME" }
+                - column: { name: location, value: "789 Beach Rd, Miami" }
+                - column: { name: size, value: "2 Bedroom" }
+                - column: { name: daily_rate, value: 200.00 }
+                - column: { name: availability, value: 2 }
+
+    - changeSet:
+        id: insert-accommodation-amenities
+        author: Nikolai
+        changes:
+          - insert:
+              tableName: accommodation_amenities
+              columns:
+                - column: { name: accommodation_id, value: 1 }
+                - column: { name: amenity, value: "WiFi" }
+          - insert:
+              tableName: accommodation_amenities
+              columns:
+                - column: { name: accommodation_id, value: 1 }
+                - column: { name: amenity, value: "Parking" }
+          - insert:
+              tableName: accommodation_amenities
+              columns:
+                - column: { name: accommodation_id, value: 1 }
+                - column: { name: amenity, value: "Pool" }
+          - insert:
+              tableName: accommodation_amenities
+              columns:
+                - column: { name: accommodation_id, value: 2 }
+                - column: { name: amenity, value: "WiFi" }
+          - insert:
+              tableName: accommodation_amenities
+              columns:
+                - column: { name: accommodation_id, value: 2 }
+                - column: { name: amenity, value: "Kitchen" }
+          - insert:
+              tableName: accommodation_amenities
+              columns:
+                - column: { name: accommodation_id, value: 2 }
+                - column: { name: amenity, value: "Gym" }
+          - insert:
+              tableName: accommodation_amenities
+              columns:
+                - column: { name: accommodation_id, value: 3 }
+                - column: { name: amenity, value: "WiFi" }
+          - insert:
+              tableName: accommodation_amenities
+              columns:
+                - column: { name: accommodation_id, value: 3 }
+                - column: { name: amenity, value: "Ocean View" }
+          - insert:
+              tableName: accommodation_amenities
+              columns:
+                - column: { name: accommodation_id, value: 3 }
+                - column: { name: amenity, value: "Pool" }
+
+    - changeSet:
+        id: update-accommodation-id-sequence
+        author: Nikolai
+        changes:
+          - sql:
+              dbms: postgresql
+              splitStatements: false
+              sql: |
+                SELECT setval('accommodations_id_seq', (SELECT MAX(id) FROM accommodations));

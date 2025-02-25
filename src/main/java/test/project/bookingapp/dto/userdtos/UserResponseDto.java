@@ -1,4 +1,4 @@
-package test.project.bookingapp.dto;
+package test.project.bookingapp.dto.userdtos;
 
 public record UserResponseDto(
         Long id,
