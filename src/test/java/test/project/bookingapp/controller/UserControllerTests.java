@@ -17,11 +17,11 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import test.project.bookingapp.config.WithMockCustomUser;
-import test.project.bookingapp.dto.UserResponseDto;
-import test.project.bookingapp.dto.UserRoleUpdateRequestDto;
-import test.project.bookingapp.dto.UserRoleUpdateResponseDto;
-import test.project.bookingapp.dto.UserUpdateRequestDto;
-import test.project.bookingapp.model.RoleName;
+import test.project.bookingapp.dto.userdtos.UserResponseDto;
+import test.project.bookingapp.dto.userdtos.UserRoleUpdateRequestDto;
+import test.project.bookingapp.dto.userdtos.UserRoleUpdateResponseDto;
+import test.project.bookingapp.dto.userdtos.UserUpdateRequestDto;
+import test.project.bookingapp.model.role.RoleName;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc

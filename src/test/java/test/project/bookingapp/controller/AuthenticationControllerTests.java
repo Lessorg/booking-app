@@ -18,9 +18,9 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import test.project.bookingapp.dto.UserLoginRequestDto;
-import test.project.bookingapp.dto.UserRegistrationRequestDto;
-import test.project.bookingapp.dto.UserResponseDto;
+import test.project.bookingapp.dto.userdtos.UserLoginRequestDto;
+import test.project.bookingapp.dto.userdtos.UserRegistrationRequestDto;
+import test.project.bookingapp.dto.userdtos.UserResponseDto;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc

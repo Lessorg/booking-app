@@ -1,4 +1,4 @@
-package test.project.bookingapp.model;
+package test.project.bookingapp.model.role;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

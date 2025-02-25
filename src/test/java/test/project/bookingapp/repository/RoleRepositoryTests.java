@@ -11,8 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.jdbc.Sql;
-import test.project.bookingapp.model.Role;
-import test.project.bookingapp.model.RoleName;
+import test.project.bookingapp.model.role.Role;
+import test.project.bookingapp.model.role.RoleName;
 
 @DataJpaTest
 @Sql(scripts = "/db/clean-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)

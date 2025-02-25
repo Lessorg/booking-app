@@ -1,4 +1,4 @@
-package test.project.bookingapp.model;
+package test.project.bookingapp.model.role;
 
 public enum RoleName {
     ROLE_CUSTOMER,

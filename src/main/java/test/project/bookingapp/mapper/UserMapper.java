@@ -6,16 +6,18 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import test.project.bookingapp.config.MapperConfig;
-import test.project.bookingapp.dto.UserRegistrationRequestDto;
-import test.project.bookingapp.dto.UserResponseDto;
-import test.project.bookingapp.dto.UserRoleUpdateResponseDto;
-import test.project.bookingapp.model.Role;
-import test.project.bookingapp.model.RoleName;
+import test.project.bookingapp.dto.userdtos.UserRegistrationRequestDto;
+import test.project.bookingapp.dto.userdtos.UserResponseDto;
+import test.project.bookingapp.dto.userdtos.UserRoleUpdateResponseDto;
 import test.project.bookingapp.model.User;
+import test.project.bookingapp.model.role.Role;
+import test.project.bookingapp.model.role.RoleName;
 
 @Mapper(config = MapperConfig.class)
 public interface UserMapper {
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "authorities", ignore = true)
     User toUser(UserRegistrationRequestDto userDto);
 
     UserResponseDto toUserResponseDto(User updatedUser);
