@@ -8,7 +8,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
 import test.project.bookingapp.model.User;
 import test.project.bookingapp.model.role.Role;
-import test.project.bookingapp.model.role.RoleName;
 
 public class CustomSecurityContextFactory
         implements WithSecurityContextFactory<WithMockCustomUser> {
@@ -19,7 +18,7 @@ public class CustomSecurityContextFactory
         user.setEmail(customUser.email());
         user.setPassword("password");
         Role role = new Role();
-        role.setName(RoleName.ROLE_CUSTOMER);
+        role.setName(customUser.role());
         user.setRoles(Set.of(role));
 
         SecurityContext context = SecurityContextHolder.createEmptyContext();

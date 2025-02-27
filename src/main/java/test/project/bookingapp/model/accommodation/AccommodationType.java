@@ -4,5 +4,6 @@ public enum AccommodationType {
     HOUSE,
     APARTMENT,
     CONDO,
-    VACATION_HOME
+    VACATION_HOME,
+    HOTEL
 }
