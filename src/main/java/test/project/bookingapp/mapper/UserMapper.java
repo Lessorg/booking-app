@@ -4,11 +4,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import test.project.bookingapp.config.MapperConfig;
 import test.project.bookingapp.dto.userdtos.UserRegistrationRequestDto;
 import test.project.bookingapp.dto.userdtos.UserResponseDto;
 import test.project.bookingapp.dto.userdtos.UserRoleUpdateResponseDto;
+import test.project.bookingapp.dto.userdtos.UserUpdateRequestDto;
 import test.project.bookingapp.model.User;
 import test.project.bookingapp.model.role.Role;
 import test.project.bookingapp.model.role.RoleName;
@@ -25,6 +27,12 @@ public interface UserMapper {
     @Mapping(source = "id", target = "userId")
     @Mapping(source = "roles", target = "roles", qualifiedByName = "mapRolesToRoleNames")
     UserRoleUpdateResponseDto toUserRoleUpdateResponseDto(User updatedUser);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "authorities", ignore = true)
+    void updateEntity(@MappingTarget User user, UserUpdateRequestDto request);
 
     @Named("mapRolesToRoleNames")
     default Set<RoleName> mapRolesToRoleNames(Set<Role> roles) {

@@ -1,0 +1,86 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-bookings-table
+      author: Nikolai
+      changes:
+        - createTable:
+            tableName: bookings
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: check_in_date
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: check_out_date
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: accommodation_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: bookings
+            baseColumnNames: accommodation_id
+            referencedTableName: accommodations
+            referencedColumnNames: id
+            constraintName: fk_bookings_accommodation
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: bookings
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_bookings_user
+            onDelete: CASCADE
+
+  - changeSet:
+      id: insert-bookings
+      author: Nikolai
+      changes:
+        - insert:
+            tableName: bookings
+            columns:
+              - column: { name: id, value: 1 }
+              - column: { name: check_in_date, value: "2025-03-01" }
+              - column: { name: check_out_date, value: "2025-03-07" }
+              - column: { name: accommodation_id, value: 1 }
+              - column: { name: user_id, value: 2 }
+              - column: { name: status, value: "PENDING" }
+        - insert:
+            tableName: bookings
+            columns:
+              - column: { name: id, value: 2 }
+              - column: { name: check_in_date, value: "2025-04-10" }
+              - column: { name: check_out_date, value: "2025-04-15" }
+              - column: { name: accommodation_id, value: 2 }
+              - column: { name: user_id, value: 3 }
+              - column: { name: status, value: "CONFIRMED" }
+
+  - changeSet:
+      id: update-booking-id-sequence
+      author: Nikolai
+      changes:
+        - sql:
+            dbms: postgresql
+            splitStatements: false
+            sql: |
+              SELECT setval('bookings_id_seq', (SELECT MAX(id) FROM bookings));

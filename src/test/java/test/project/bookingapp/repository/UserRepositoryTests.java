@@ -17,7 +17,6 @@ import test.project.bookingapp.model.role.RoleName;
 @DataJpaTest
 @Sql(scripts = "/db/clean-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 @Sql(scripts = "/db/add-test-users.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-@Sql(scripts = "/db/clean-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class UserRepositoryTests {
     public static final String EXISTENT_EMAIL = "test@example.com";
@@ -65,4 +64,3 @@ public class UserRepositoryTests {
         assertTrue(userOptional.isEmpty());
     }
 }
-
