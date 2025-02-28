@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,11 +20,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import test.project.bookingapp.dto.bookingdtos.BookingRequestDto;
 import test.project.bookingapp.dto.bookingdtos.BookingResponseDto;
+import test.project.bookingapp.dto.bookingdtos.BookingSearchParametersDto;
 import test.project.bookingapp.model.User;
 import test.project.bookingapp.service.BookingService;
 
@@ -45,14 +46,15 @@ public class BookingController {
     }
 
     @Operation(summary = "Get bookings by user and status",
-            description = "Retrieves bookings based on user ID and status (Available for managers)")
+            description = "Retrieves bookings based on user ID and status "
+                    + "(Only accessible by admins)")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public Page<BookingResponseDto> getBookingsByUserAndStatus(
-            @RequestParam(required = false) Long userId,
-            @RequestParam(required = false) String status,
-            @ParameterObject @PageableDefault Pageable pageable) {
-        return bookingService.getBookingsByUserAndStatus(userId, status, pageable);
+            BookingSearchParametersDto bookingSearchParametersDto,
+            @ParameterObject @PageableDefault(sort = "checkInDate",
+                    direction = Sort.Direction.DESC) Pageable pageable) {
+        return bookingService.getBookingsByUserAndStatus(bookingSearchParametersDto, pageable);
     }
 
     @Operation(summary = "Get user bookings",

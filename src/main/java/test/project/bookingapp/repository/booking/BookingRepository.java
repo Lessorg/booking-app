@@ -1,9 +1,10 @@
-package test.project.bookingapp.repository;
+package test.project.bookingapp.repository.booking;
 
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,5 +24,5 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                           @Param("checkIn") LocalDate checkIn,
                                           @Param("checkOut") LocalDate checkOut);
 
-    Page<Booking> findByStatus(BookingStatus bookingStatus, Pageable pageable);
+    Page<Booking> findAll(Specification<Booking> spec, Pageable pageable);
 }

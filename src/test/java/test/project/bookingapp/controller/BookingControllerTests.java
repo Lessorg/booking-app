@@ -6,22 +6,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
-import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.jdbc.Sql;
@@ -30,7 +25,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import test.project.bookingapp.config.WithMockCustomUser;
 import test.project.bookingapp.dto.bookingdtos.BookingRequestDto;
-import test.project.bookingapp.dto.bookingdtos.BookingResponseDto;
 import test.project.bookingapp.model.role.RoleName;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -76,22 +70,18 @@ class BookingControllerTests {
     @DisplayName("Admin should get all bookings")
     @WithMockCustomUser(id = 20L, role = RoleName.ROLE_ADMIN)
     void getBookingsByUserAndStatus_ShouldReturnPagedBookings() throws Exception {
-        PageRequest pageRequest = PageRequest.of(0, 10);
-        BookingResponseDto expectedBooking = new BookingResponseDto(
-                100L,
-                LocalDate.of(2025, 6, 1),
-                LocalDate.of(2025, 6, 7),
-                10L,
-                20L,
-                "PENDING"
-        );
-        Page<BookingResponseDto> page = new PageImpl<>(List.of(expectedBooking), pageRequest, 1);
-
         mockMvc.perform(get("/bookings")
                         .param("status", "PENDING")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(page)));
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].id").value(100L))
+                .andExpect(jsonPath("$.content[0].checkInDate").value("2025-06-01"))
+                .andExpect(jsonPath("$.content[0].checkOutDate").value("2025-06-07"))
+                .andExpect(jsonPath("$.content[0].accommodationId").value(10L))
+                .andExpect(jsonPath("$.content[0].userId").value(20L))
+                .andExpect(jsonPath("$.content[0].status").value("PENDING"))
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 
     @Test
@@ -177,7 +167,11 @@ class BookingControllerTests {
         mockMvc.perform(get("/bookings")
                         .param("status", "PENDING")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].id").value(100L))
+                .andExpect(jsonPath("$.content[0].status").value("PENDING"))
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 
     @Test

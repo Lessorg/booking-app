@@ -19,6 +19,7 @@ import test.project.bookingapp.model.User;
 import test.project.bookingapp.model.accommodation.Accommodation;
 import test.project.bookingapp.model.booking.Booking;
 import test.project.bookingapp.model.booking.BookingStatus;
+import test.project.bookingapp.repository.booking.BookingRepository;
 
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
@@ -31,7 +32,6 @@ class BookingRepositoryTests {
     private static final Long EXISTING_BOOKING_ID = 100L;
     private static final Long NON_EXISTENT_BOOKING_ID = 999L;
     private static final BookingStatus TEST_STATUS_PENDING = BookingStatus.PENDING;
-    private static final BookingStatus TEST_STATUS_CONFIRMED = BookingStatus.CONFIRMED;
     private static final PageRequest PAGE_REQUEST = PageRequest.of(0, 10);
 
     @Autowired
@@ -83,17 +83,6 @@ class BookingRepositoryTests {
         assertThat(overlappingBookings).isNotEmpty();
         assertThat(overlappingBookings.get(0).getAccommodation().getId())
                 .isEqualTo(TEST_ACCOMMODATION_ID);
-    }
-
-    @Test
-    @DisplayName("Find bookings by status")
-    void shouldFindBookingsByStatus() {
-        Page<Booking> bookings = bookingRepository.findByStatus(TEST_STATUS_CONFIRMED,
-                PAGE_REQUEST);
-
-        assertThat(bookings).isNotEmpty();
-        assertThat(bookings.getContent()).allMatch(
-                booking -> booking.getStatus() == TEST_STATUS_CONFIRMED);
     }
 
     @Test

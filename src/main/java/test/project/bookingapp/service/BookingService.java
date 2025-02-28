@@ -5,10 +5,12 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import test.project.bookingapp.dto.bookingdtos.BookingRequestDto;
 import test.project.bookingapp.dto.bookingdtos.BookingResponseDto;
+import test.project.bookingapp.dto.bookingdtos.BookingSearchParametersDto;
 import test.project.bookingapp.exception.BookingConflictException;
 import test.project.bookingapp.exception.EntityNotFoundException;
 import test.project.bookingapp.exception.InvalidBookingStatusException;
@@ -19,7 +21,8 @@ import test.project.bookingapp.model.booking.Booking;
 import test.project.bookingapp.model.booking.BookingStatus;
 import test.project.bookingapp.model.role.Role;
 import test.project.bookingapp.model.role.RoleName;
-import test.project.bookingapp.repository.BookingRepository;
+import test.project.bookingapp.repository.booking.BookingRepository;
+import test.project.bookingapp.repository.booking.specification.BookingSpecificationBuilder;
 
 @RequiredArgsConstructor
 @Transactional
@@ -29,6 +32,7 @@ public class BookingService {
     private final AuthenticationService authenticationService;
     private final AccommodationService accommodationService;
     private final BookingMapper bookingMapper;
+    private final BookingSpecificationBuilder bookingSpecificationBuilder;
 
     public BookingResponseDto createBooking(Long userId, BookingRequestDto request) {
         Accommodation accommodation =
@@ -49,14 +53,11 @@ public class BookingService {
         return bookingMapper.toBookingResponseDto(booking);
     }
 
-    public Page<BookingResponseDto> getBookingsByUserAndStatus(Long userId,
-                                                               String status, Pageable pageable) {
-        if (userId != null) {
-            return bookingRepository.findByUserIdAndStatus(userId,
-                            BookingStatus.valueOf(status), pageable)
-                    .map(bookingMapper::toBookingResponseDto);
-        }
-        return bookingRepository.findByStatus(BookingStatus.valueOf(status), pageable)
+    public Page<BookingResponseDto> getBookingsByUserAndStatus(
+            BookingSearchParametersDto searchParams,
+            Pageable pageable) {
+        Specification<Booking> spec = bookingSpecificationBuilder.build(searchParams);
+        return bookingRepository.findAll(spec, pageable)
                 .map(bookingMapper::toBookingResponseDto);
     }
 

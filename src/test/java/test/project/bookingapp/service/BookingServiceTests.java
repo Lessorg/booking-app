@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,8 +18,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import test.project.bookingapp.dto.bookingdtos.BookingRequestDto;
 import test.project.bookingapp.dto.bookingdtos.BookingResponseDto;
+import test.project.bookingapp.dto.bookingdtos.BookingSearchParametersDto;
 import test.project.bookingapp.exception.EntityNotFoundException;
 import test.project.bookingapp.exception.InvalidBookingStatusException;
 import test.project.bookingapp.mapper.BookingMapper;
@@ -28,7 +34,8 @@ import test.project.bookingapp.model.booking.Booking;
 import test.project.bookingapp.model.booking.BookingStatus;
 import test.project.bookingapp.model.role.Role;
 import test.project.bookingapp.model.role.RoleName;
-import test.project.bookingapp.repository.BookingRepository;
+import test.project.bookingapp.repository.booking.BookingRepository;
+import test.project.bookingapp.repository.booking.specification.BookingSpecificationBuilder;
 
 @ExtendWith(MockitoExtension.class)
 class BookingServiceTests {
@@ -40,6 +47,8 @@ class BookingServiceTests {
     private AccommodationService accommodationService;
     @Mock
     private BookingMapper bookingMapper;
+    @Mock
+    private BookingSpecificationBuilder bookingSpecificationBuilder;
 
     @InjectMocks
     private BookingService bookingService;
@@ -175,5 +184,34 @@ class BookingServiceTests {
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
                 () -> bookingService.getBookingById(1L, 1L));
         assertEquals("Booking not found with id: 1", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get bookings by user and status - Success")
+    void getBookingsByUserAndStatus_Success() {
+        BookingSearchParametersDto searchParams =
+                new BookingSearchParametersDto(1L, BookingStatus.PENDING);
+        Specification<Booking> spec = Specification.where(null);
+        Booking booking = new Booking();
+        booking.setId(1L);
+        booking.setStatus(BookingStatus.PENDING);
+        Pageable pageable = Pageable.unpaged();
+
+        BookingResponseDto responseDto = new BookingResponseDto(
+                1L, booking.getCheckInDate(), booking.getCheckOutDate(),
+                1L, 1L, BookingStatus.PENDING.name());
+
+        when(bookingSpecificationBuilder.build(searchParams)).thenReturn(spec);
+        when(bookingRepository.findAll(spec, pageable))
+                .thenReturn(new PageImpl<>(List.of(booking)));
+        when(bookingMapper.toBookingResponseDto(any(Booking.class))).thenReturn(responseDto);
+        Page<BookingResponseDto> result =
+                bookingService.getBookingsByUserAndStatus(searchParams, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals(BookingStatus.PENDING.name(), result.getContent().get(0).status());
+        verify(bookingSpecificationBuilder).build(searchParams);
+        verify(bookingRepository).findAll(spec, pageable);
     }
 }
