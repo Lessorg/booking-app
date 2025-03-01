@@ -45,7 +45,7 @@ public class AccommodationService {
         accommodationRepository.delete(accommodation);
     }
 
-    private Accommodation findAccommodationById(Long id) {
+    public Accommodation findAccommodationById(Long id) {
         return accommodationRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Accommodation not found with id: " + id));

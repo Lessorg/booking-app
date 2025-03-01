@@ -50,14 +50,18 @@
                     type: bigserial
                     constraints:
                       nullable: false
-                      foreignKeyName: fk_accommodation_amenities
-                      references: accommodations(id)
-                      onDelete: CASCADE
                 - column:
                     name: amenity
                     type: varchar(255)
                     constraints:
                       nullable: false
+          - addForeignKeyConstraint:
+              baseTableName: accommodation_amenities
+              baseColumnNames: accommodation_id
+              referencedTableName: accommodations
+              referencedColumnNames: id
+              constraintName: fk_accommodation_amenities
+              onDelete: CASCADE
 
     - changeSet:
         id: insert-accommodations
