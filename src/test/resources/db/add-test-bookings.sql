@@ -36,6 +36,8 @@ VALUES
 INSERT INTO bookings (id, check_in_date, check_out_date, accommodation_id, user_id, status)
 VALUES
     (100, '2025-06-01', '2025-06-07', 10, 20, 'PENDING'),
-    (101, '2025-07-10', '2025-07-15', 11, 21, 'CONFIRMED');
+    (101, '2025-07-10', '2025-07-15', 11, 21, 'CONFIRMED'),
+    (102, '2025-02-20', '2025-02-25', 10, 20, 'CONFIRMED'),
+    (103, '2025-02-18', '2025-02-22', 11, 21, 'CANCELED');
 
 SELECT setval('bookings_id_seq', (SELECT MAX(id) FROM bookings));

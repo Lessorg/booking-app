@@ -1,4 +1,4 @@
-package test.project.bookingapp.service;
+package test.project.bookingapp.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -13,12 +13,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class JwtAuthenticationService {
+public class JwtUtils {
     private final long expiration;
     private final Key secret;
 
-    public JwtAuthenticationService(@Value("${jwt.secret}") String secretString,
-                                    @Value("${jwt.expiration}") long expiration) {
+    public JwtUtils(@Value("${jwt.secret}") String secretString,
+                    @Value("${jwt.expiration}") long expiration) {
         secret = Keys.hmacShaKeyFor(secretString.getBytes(StandardCharsets.UTF_8));
         this.expiration = expiration;
     }

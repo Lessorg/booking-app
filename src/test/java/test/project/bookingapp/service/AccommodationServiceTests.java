@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +38,9 @@ class AccommodationServiceTests {
     @Mock
     private AccommodationMapper accommodationMapper;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     @InjectMocks
     private AccommodationService accommodationService;
 
@@ -48,14 +52,14 @@ class AccommodationServiceTests {
     void setUp() {
         accommodation = new Accommodation();
         accommodation.setId(1L);
-        accommodation.setType(AccommodationType.valueOf("HOUSE"));
+        accommodation.setType(AccommodationType.HOUSE);
         accommodation.setLocation("123 Main St");
         accommodation.setSize("3 Bedroom");
         accommodation.setDailyRate(new BigDecimal("150.00"));
         accommodation.setAvailability(5);
 
         accommodationRequestDto = new AccommodationRequestDto(
-                AccommodationType.valueOf("HOUSE"),
+                AccommodationType.HOUSE,
                 "123 Main St",
                 "3 Bedroom",
                 Collections.singletonList("WiFi, Pool"),
@@ -63,7 +67,7 @@ class AccommodationServiceTests {
                 5);
         accommodationResponseDto = new AccommodationResponseDto(
                 1L,
-                AccommodationType.valueOf("HOUSE"),
+                AccommodationType.HOUSE,
                 "123 Main St",
                 "3 Bedroom",
                 Collections.singletonList("WiFi, Pool"),
@@ -85,6 +89,7 @@ class AccommodationServiceTests {
         assertEquals(accommodationResponseDto.id(), response.id());
         assertEquals(accommodationResponseDto.type(), response.type());
         verify(accommodationRepository).save(any(Accommodation.class));
+        verify(eventPublisher).publishEvent(any());
     }
 
     @Test

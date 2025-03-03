@@ -1,4 +1,4 @@
-package test.project.bookingapp.service;
+package test.project.bookingapp.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -37,15 +37,16 @@ import test.project.bookingapp.model.role.Role;
 import test.project.bookingapp.model.role.RoleName;
 import test.project.bookingapp.repository.RoleRepository;
 import test.project.bookingapp.repository.UserRepository;
+import test.project.bookingapp.utils.JwtUtils;
 
 @ExtendWith(MockitoExtension.class)
-class AuthenticationServiceTests {
+class JwtAuthenticationServiceTests {
     @Mock
     private UserRepository userRepository;
     @Mock
     private RoleRepository roleRepository;
     @Mock
-    private JwtAuthenticationService jwtAuthenticationService;
+    private JwtUtils jwtUtils;
     @Mock
     private AuthenticationManager authenticationManager;
     @Mock
@@ -54,7 +55,7 @@ class AuthenticationServiceTests {
     private UserMapper userMapper;
 
     @InjectMocks
-    private AuthenticationService authenticationService;
+    private JwtAuthenticationService jwtAuthenticationService;
 
     private User user;
     private Role role;
@@ -89,9 +90,9 @@ class AuthenticationServiceTests {
                 argThat(token -> token.getPrincipal().equals(loginRequest.email())
                         && token.getCredentials().equals(loginRequest.password())))
         ).thenReturn(null);
-        when(jwtAuthenticationService.generateToken(loginRequest.email())).thenReturn("mock-token");
+        when(jwtUtils.generateToken(loginRequest.email())).thenReturn("mock-token");
 
-        UserLoginResponseDto response = authenticationService.authenticate(loginRequest);
+        UserLoginResponseDto response = jwtAuthenticationService.authenticate(loginRequest);
 
         assertNotNull(response);
         assertEquals("mock-token", response.token());
@@ -112,7 +113,7 @@ class AuthenticationServiceTests {
                         user.getEmail(),
                         user.getFirstName(),
                         user.getLastName()));
-        UserResponseDto response = authenticationService.register(registrationRequest);
+        UserResponseDto response = jwtAuthenticationService.register(registrationRequest);
 
         assertNotNull(response);
         assertEquals("test@example.com", response.email());
@@ -125,7 +126,7 @@ class AuthenticationServiceTests {
         when(userRepository.existsByEmail(registrationRequest.email())).thenReturn(true);
 
         RegistrationException exception = assertThrows(RegistrationException.class,
-                () -> authenticationService.register(registrationRequest));
+                () -> jwtAuthenticationService.register(registrationRequest));
 
         assertEquals("Can't register user with email test@example.com, email already exists",
                 exception.getMessage());
@@ -144,7 +145,7 @@ class AuthenticationServiceTests {
         when(userMapper.toUserRoleUpdateResponseDto(user)).thenReturn(
                 new UserRoleUpdateResponseDto(user.getId(), roleNamesSet));
 
-        UserRoleUpdateResponseDto response = authenticationService.updateUserRole(1L, request);
+        UserRoleUpdateResponseDto response = jwtAuthenticationService.updateUserRole(1L, request);
 
         assertNotNull(response);
         assertEquals(user.getId(), response.userId());
@@ -160,7 +161,7 @@ class AuthenticationServiceTests {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
-                () -> authenticationService.updateUserRole(1L, request));
+                () -> jwtAuthenticationService.updateUserRole(1L, request));
 
         assertEquals("Can't find user by id: 1", exception.getMessage());
     }
@@ -175,7 +176,7 @@ class AuthenticationServiceTests {
                         user.getFirstName(),
                         user.getLastName()));
 
-        UserResponseDto response = authenticationService.getUserProfile(1L);
+        UserResponseDto response = jwtAuthenticationService.getUserProfile(1L);
 
         assertNotNull(response);
         assertEquals(user.getId(), response.id());
@@ -196,7 +197,7 @@ class AuthenticationServiceTests {
                         user.getFirstName(),
                         user.getLastName()));
 
-        UserResponseDto response = authenticationService.updateUserProfile(1L, updateRequest);
+        UserResponseDto response = jwtAuthenticationService.updateUserProfile(1L, updateRequest);
 
         assertNotNull(response);
         assertEquals(updateRequest.email(), response.email());
@@ -216,7 +217,7 @@ class AuthenticationServiceTests {
 
         EmailAlreadyExistsException exception = assertThrows(
                 EmailAlreadyExistsException.class,
-                () -> authenticationService.updateUserProfile(1L, updateRequest));
+                () -> jwtAuthenticationService.updateUserProfile(1L, updateRequest));
         assertEquals("Email existingemail@example.com already exists", exception.getMessage());
     }
 }
