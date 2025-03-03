@@ -17,6 +17,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Page<Booking> findByUserIdAndStatus(Long userId, BookingStatus status, Pageable pageable);
 
     @Query("SELECT b FROM Booking b WHERE b.accommodation.id = :accommodationId "
+            + "AND b.status <> 'CANCELED' "
             + "AND (:checkIn BETWEEN b.checkInDate AND b.checkOutDate "
             + "OR :checkOut BETWEEN b.checkInDate AND b.checkOutDate "
             + "OR (b.checkInDate BETWEEN :checkIn AND :checkOut))")
@@ -25,4 +26,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                           @Param("checkOut") LocalDate checkOut);
 
     Page<Booking> findAll(Specification<Booking> spec, Pageable pageable);
+
+    List<Booking> findByCheckOutDateBeforeAndStatusNot(LocalDate returnDate, BookingStatus status);
 }

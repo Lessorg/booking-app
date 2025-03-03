@@ -3,14 +3,17 @@ package test.project.bookingapp.service;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.jmx.export.notification.UnableToSendNotificationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import test.project.bookingapp.dto.bookingdtos.BookingRequestDto;
 import test.project.bookingapp.dto.bookingdtos.BookingResponseDto;
 import test.project.bookingapp.dto.bookingdtos.BookingSearchParametersDto;
+import test.project.bookingapp.events.BookingNotificationEvent;
 import test.project.bookingapp.exception.BookingConflictException;
 import test.project.bookingapp.exception.EntityNotFoundException;
 import test.project.bookingapp.exception.InvalidBookingStatusException;
@@ -23,27 +26,37 @@ import test.project.bookingapp.model.role.Role;
 import test.project.bookingapp.model.role.RoleName;
 import test.project.bookingapp.repository.booking.BookingRepository;
 import test.project.bookingapp.repository.booking.specification.BookingSpecificationBuilder;
+import test.project.bookingapp.service.impl.JwtAuthenticationService;
 
 @RequiredArgsConstructor
 @Transactional
 @Service
 public class BookingService {
     private final BookingRepository bookingRepository;
-    private final AuthenticationService authenticationService;
+    private final JwtAuthenticationService jwtAuthenticationService;
     private final AccommodationService accommodationService;
     private final BookingMapper bookingMapper;
     private final BookingSpecificationBuilder bookingSpecificationBuilder;
+    private final ApplicationEventPublisher eventPublisher;
 
     public BookingResponseDto createBooking(Long userId, BookingRequestDto request) {
         Accommodation accommodation =
                 accommodationService.findAccommodationById(request.accommodationId());
         validateAvailability(accommodation.getId(), request.checkInDate(), request.checkOutDate());
 
-        User user = authenticationService.findUserById(userId);
+        User user = jwtAuthenticationService.findUserById(userId);
         Booking booking = bookingMapper.toBookingEntity(request, user, accommodation,
                 BookingStatus.PENDING);
-
         booking = bookingRepository.save(booking);
+
+        try {
+            eventPublisher.publishEvent(
+                    new BookingNotificationEvent(this, "New booking created: " + booking.getId()));
+        } catch (Exception e) {
+            throw new UnableToSendNotificationException(
+                    "Failed to send notification for booking ID: " + booking.getId(), e);
+        }
+
         return bookingMapper.toBookingResponseDto(booking);
     }
 
@@ -92,6 +105,32 @@ public class BookingService {
 
         booking.setStatus(BookingStatus.CANCELED);
         bookingRepository.save(booking);
+
+        try {
+            eventPublisher.publishEvent(
+                    new BookingNotificationEvent(this, "Booking canceled: "
+                            + booking.getId()));
+        } catch (Exception e) {
+            throw new UnableToSendNotificationException(
+                    "Failed to send notification for booking ID: " + booking.getId(), e);
+        }
+    }
+
+    public List<Booking> markBookingsAsExpired() {
+        LocalDate today = LocalDate.now();
+        LocalDate thresholdDate = today.minusDays(1);
+        List<Booking> expiredBookings = findExpiredBookings(thresholdDate);
+
+        for (Booking booking : expiredBookings) {
+            booking.setStatus(BookingStatus.EXPIRED);
+            bookingRepository.save(booking);
+        }
+        return expiredBookings;
+    }
+
+    private List<Booking> findExpiredBookings(LocalDate thresholdDate) {
+        return bookingRepository.findByCheckOutDateBeforeAndStatusNot(thresholdDate,
+                BookingStatus.CANCELED);
     }
 
     private Booking findBookingById(Long id) {
@@ -114,7 +153,7 @@ public class BookingService {
     }
 
     private void validateAccess(Long userId, Booking booking) {
-        User currentUser = authenticationService.findUserById(userId);
+        User currentUser = jwtAuthenticationService.findUserById(userId);
         boolean isAdmin = currentUser.getRoles().stream()
                 .map(Role::getName)
                 .anyMatch(roleName -> roleName == RoleName.ROLE_ADMIN);

@@ -12,26 +12,26 @@ import test.project.bookingapp.dto.userdtos.UserLoginRequestDto;
 import test.project.bookingapp.dto.userdtos.UserLoginResponseDto;
 import test.project.bookingapp.dto.userdtos.UserRegistrationRequestDto;
 import test.project.bookingapp.dto.userdtos.UserResponseDto;
-import test.project.bookingapp.service.AuthenticationService;
+import test.project.bookingapp.service.impl.JwtAuthenticationService;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/auth")
 @Tag(name = "Authentication", description = "Endpoints for user registration and authentication")
 public class AuthenticationController {
-    private final AuthenticationService authenticationService;
+    private final JwtAuthenticationService jwtAuthenticationService;
 
     @Operation(summary = "Register a new user",
             description = "Creates a new user account with the provided registration details")
     @PostMapping("/register")
     public UserResponseDto register(@Valid @RequestBody UserRegistrationRequestDto request) {
-        return authenticationService.register(request);
+        return jwtAuthenticationService.register(request);
     }
 
     @Operation(summary = "User login",
             description = "Authenticates the user and returns a JWT token")
     @PostMapping("/login")
     public UserLoginResponseDto login(@Valid @RequestBody UserLoginRequestDto request) {
-        return authenticationService.authenticate(request);
+        return jwtAuthenticationService.authenticate(request);
     }
 }

@@ -18,14 +18,14 @@ import test.project.bookingapp.dto.userdtos.UserRoleUpdateRequestDto;
 import test.project.bookingapp.dto.userdtos.UserRoleUpdateResponseDto;
 import test.project.bookingapp.dto.userdtos.UserUpdateRequestDto;
 import test.project.bookingapp.model.User;
-import test.project.bookingapp.service.AuthenticationService;
+import test.project.bookingapp.service.impl.JwtAuthenticationService;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/users")
 @Tag(name = "User", description = "Endpoints for user profile and role management")
 public class UserController {
-    private final AuthenticationService authenticationService;
+    private final JwtAuthenticationService jwtAuthenticationService;
 
     @Operation(summary = "Update user roles",
             description = "Allows an admin to update the roles assigned to a user")
@@ -34,7 +34,7 @@ public class UserController {
     public UserRoleUpdateResponseDto updateUserRole(
             @PathVariable Long id,
             @Valid @RequestBody UserRoleUpdateRequestDto role) {
-        return authenticationService.updateUserRole(id, role);
+        return jwtAuthenticationService.updateUserRole(id, role);
     }
 
     @Operation(summary = "Get current user profile",
@@ -42,7 +42,7 @@ public class UserController {
     @PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
     @GetMapping("/me")
     public UserResponseDto getCurrentUser(Authentication authentication) {
-        return authenticationService.getUserProfile(getUserId(authentication));
+        return jwtAuthenticationService.getUserProfile(getUserId(authentication));
     }
 
     @Operation(summary = "Update current user profile",
@@ -53,7 +53,7 @@ public class UserController {
     public UserResponseDto updateProfile(
             Authentication authentication,
             @Valid @RequestBody UserUpdateRequestDto request) {
-        return authenticationService.updateUserProfile(getUserId(authentication), request);
+        return jwtAuthenticationService.updateUserProfile(getUserId(authentication), request);
     }
 
     private Long getUserId(Authentication authentication) {

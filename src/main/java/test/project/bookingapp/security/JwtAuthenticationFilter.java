@@ -16,13 +16,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import test.project.bookingapp.service.JwtAuthenticationService;
+import test.project.bookingapp.utils.JwtUtils;
 
 @RequiredArgsConstructor
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String BEARER_PREFIX = "Bearer ";
-    private final JwtAuthenticationService jwtAuthenticationService;
+    private final JwtUtils jwtUtils;
     private final UserDetailsService userDetailsService;
 
     @Override
@@ -34,8 +34,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String token = getToken(request);
 
-            if (token != null && jwtAuthenticationService.isValidToken(token)) {
-                String username = jwtAuthenticationService.getUsername(token);
+            if (token != null && jwtUtils.isValidToken(token)) {
+                String username = jwtUtils.getUsername(token);
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 Authentication authentication = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities()

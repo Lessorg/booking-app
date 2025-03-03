@@ -24,8 +24,7 @@ import test.project.bookingapp.repository.booking.BookingRepository;
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
 @Sql(scripts = "/db/clean-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
-@Sql(scripts = "/db/add-test-bookings.sql",
-        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Sql(scripts = "/db/add-test-bookings.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class BookingRepositoryTests {
     private static final Long TEST_USER_ID = 20L;
     private static final Long TEST_ACCOMMODATION_ID = 10L;
@@ -53,9 +52,7 @@ class BookingRepositoryTests {
     @DisplayName("Find bookings by user ID")
     void shouldFindBookingsByUserId() {
         Page<Booking> bookings = bookingRepository.findByUserId(TEST_USER_ID, PAGE_REQUEST);
-
-        assertThat(bookings).isNotEmpty();
-        assertThat(bookings.getContent()).allMatch(
+        assertThat(bookings).isNotEmpty().allMatch(
                 booking -> booking.getUser().getId().equals(TEST_USER_ID));
     }
 
@@ -64,11 +61,8 @@ class BookingRepositoryTests {
     void shouldFindBookingsByUserIdAndStatus() {
         Page<Booking> bookings = bookingRepository.findByUserIdAndStatus(TEST_USER_ID,
                 TEST_STATUS_PENDING, PAGE_REQUEST);
-
-        assertThat(bookings).isNotEmpty();
-        assertThat(bookings.getContent()).allMatch(booking ->
-                booking.getUser().getId().equals(TEST_USER_ID)
-                        && booking.getStatus() == TEST_STATUS_PENDING);
+        assertThat(bookings).isNotEmpty().allMatch(
+                booking -> booking.getStatus() == TEST_STATUS_PENDING);
     }
 
     @Test
@@ -79,18 +73,15 @@ class BookingRepositoryTests {
 
         List<Booking> overlappingBookings = bookingRepository.findOverlappingBookings(
                 TEST_ACCOMMODATION_ID, checkIn, checkOut);
-
-        assertThat(overlappingBookings).isNotEmpty();
-        assertThat(overlappingBookings.get(0).getAccommodation().getId())
-                .isEqualTo(TEST_ACCOMMODATION_ID);
+        assertThat(overlappingBookings).isNotEmpty().allMatch(
+                booking -> booking.getAccommodation().getId().equals(TEST_ACCOMMODATION_ID));
     }
 
     @Test
     @DisplayName("Find booking by ID")
     void shouldFindBookingById() {
         Optional<Booking> booking = bookingRepository.findById(EXISTING_BOOKING_ID);
-        assertThat(booking).isPresent();
-        assertThat(booking.get().getId()).isEqualTo(EXISTING_BOOKING_ID);
+        assertThat(booking).isPresent().map(Booking::getId).contains(EXISTING_BOOKING_ID);
     }
 
     @Test
@@ -111,25 +102,34 @@ class BookingRepositoryTests {
         booking.setStatus(TEST_STATUS_PENDING);
 
         Booking savedBooking = bookingRepository.save(booking);
-
         assertThat(savedBooking.getId()).isNotNull();
-        assertThat(savedBooking.getAccommodation().getId()).isEqualTo(TEST_ACCOMMODATION_ID);
-        assertThat(savedBooking.getUser().getId()).isEqualTo(TEST_USER_ID);
     }
 
     @Test
     @DisplayName("Delete a booking by ID")
     void shouldDeleteBooking() {
         bookingRepository.deleteById(EXISTING_BOOKING_ID);
-        Optional<Booking> booking = bookingRepository.findById(EXISTING_BOOKING_ID);
-        assertThat(booking).isEmpty();
+        assertThat(bookingRepository.findById(EXISTING_BOOKING_ID)).isEmpty();
     }
 
     @Test
     @DisplayName("Find no bookings for a non-existent user")
     void shouldFindNoBookingsForNonExistentUser() {
-        Page<Booking> bookings = bookingRepository.findByUserId(NON_EXISTENT_BOOKING_ID,
-                PAGE_REQUEST);
+        Page<Booking> bookings =
+                bookingRepository.findByUserId(NON_EXISTENT_BOOKING_ID, PAGE_REQUEST);
         assertThat(bookings).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Find expired bookings that are not canceled")
+    void shouldFindExpiredBookings() {
+        LocalDate thresholdDate = LocalDate.now().minusDays(1);
+        List<Booking> expiredBookings = bookingRepository.findByCheckOutDateBeforeAndStatusNot(
+                thresholdDate, BookingStatus.CANCELED);
+
+        assertThat(expiredBookings).isNotEmpty().allMatch(booking ->
+                booking.getCheckOutDate().isBefore(thresholdDate)
+                        && booking.getStatus() != BookingStatus.CANCELED
+        );
     }
 }

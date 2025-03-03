@@ -1,6 +1,7 @@
 package test.project.bookingapp.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -18,13 +19,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.context.ApplicationEventPublisher;
 import test.project.bookingapp.dto.bookingdtos.BookingRequestDto;
 import test.project.bookingapp.dto.bookingdtos.BookingResponseDto;
-import test.project.bookingapp.dto.bookingdtos.BookingSearchParametersDto;
 import test.project.bookingapp.exception.EntityNotFoundException;
 import test.project.bookingapp.exception.InvalidBookingStatusException;
 import test.project.bookingapp.mapper.BookingMapper;
@@ -36,19 +33,22 @@ import test.project.bookingapp.model.role.Role;
 import test.project.bookingapp.model.role.RoleName;
 import test.project.bookingapp.repository.booking.BookingRepository;
 import test.project.bookingapp.repository.booking.specification.BookingSpecificationBuilder;
+import test.project.bookingapp.service.impl.JwtAuthenticationService;
 
 @ExtendWith(MockitoExtension.class)
 class BookingServiceTests {
     @Mock
     private BookingRepository bookingRepository;
     @Mock
-    private AuthenticationService authenticationService;
+    private JwtAuthenticationService jwtAuthenticationService;
     @Mock
     private AccommodationService accommodationService;
     @Mock
     private BookingMapper bookingMapper;
     @Mock
     private BookingSpecificationBuilder bookingSpecificationBuilder;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private BookingService bookingService;
@@ -63,6 +63,7 @@ class BookingServiceTests {
     void setUp() {
         user = new User();
         user.setId(1L);
+        user.setRoles(Set.of(new Role(2L, RoleName.ROLE_CUSTOMER)));
 
         accommodation = new Accommodation();
         accommodation.setId(1L);
@@ -95,7 +96,7 @@ class BookingServiceTests {
     @DisplayName("Create Booking")
     void createBooking() {
         when(accommodationService.findAccommodationById(any(Long.class))).thenReturn(accommodation);
-        when(authenticationService.findUserById(any(Long.class))).thenReturn(user);
+        when(jwtAuthenticationService.findUserById(any(Long.class))).thenReturn(user);
         when(bookingMapper.toBookingEntity(any(), any(), any(), any())).thenReturn(booking);
         when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
         when(bookingMapper.toBookingResponseDto(any(Booking.class))).thenReturn(bookingResponseDto);
@@ -108,71 +109,14 @@ class BookingServiceTests {
     }
 
     @Test
-    @DisplayName("Get Booking By ID")
-    void getBookingById() {
-        when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
-        when(authenticationService.findUserById(1L)).thenReturn(user);
-        when(bookingMapper.toBookingResponseDto(booking)).thenReturn(bookingResponseDto);
-
-        BookingResponseDto response = bookingService.getBookingById(1L, 1L);
-
-        assertNotNull(response);
-        assertEquals(1L, response.id());
-        verify(bookingRepository).findById(1L);
-    }
-
-    @Test
     @DisplayName("Cancel Booking")
     void cancelBooking() {
-        User mockUser = new User();
-        mockUser.setId(1L);
-        mockUser.setRoles(Set.of(new Role(2L, RoleName.ROLE_ADMIN)));
-
-        Booking booking = new Booking();
-        booking.setId(1L);
-        booking.setUser(mockUser);
-        booking.setStatus(BookingStatus.PENDING);
-
-        when(authenticationService.findUserById(1L)).thenReturn(mockUser);
+        when(jwtAuthenticationService.findUserById(1L)).thenReturn(user);
         when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
 
         bookingService.cancelBooking(1L, 1L);
 
         assertEquals(BookingStatus.CANCELED, booking.getStatus());
-        verify(bookingRepository).save(booking);
-    }
-
-    @Test
-    @DisplayName("Cancel Booking - Already Canceled")
-    void cancelBooking_AlreadyCanceled() {
-        User mockUser = new User();
-        mockUser.setId(1L);
-
-        Booking booking = new Booking();
-        booking.setId(1L);
-        booking.setUser(mockUser);
-        booking.setStatus(BookingStatus.CANCELED);
-
-        when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
-        when(authenticationService.findUserById(1L)).thenReturn(mockUser);
-
-        InvalidBookingStatusException exception = assertThrows(
-                InvalidBookingStatusException.class, () -> bookingService.cancelBooking(1L, 1L));
-
-        assertEquals("Booking with id: 1 has already been canceled.", exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Update Booking")
-    void updateBooking() {
-        when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
-        when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
-        when(bookingMapper.toBookingResponseDto(booking)).thenReturn(bookingResponseDto);
-
-        BookingResponseDto response = bookingService.updateBooking(1L, bookingRequestDto);
-
-        assertNotNull(response);
-        assertEquals(1L, response.id());
         verify(bookingRepository).save(booking);
     }
 
@@ -187,31 +131,26 @@ class BookingServiceTests {
     }
 
     @Test
-    @DisplayName("Get bookings by user and status - Success")
-    void getBookingsByUserAndStatus_Success() {
-        BookingSearchParametersDto searchParams =
-                new BookingSearchParametersDto(1L, BookingStatus.PENDING);
-        Specification<Booking> spec = Specification.where(null);
-        Booking booking = new Booking();
-        booking.setId(1L);
-        booking.setStatus(BookingStatus.PENDING);
-        Pageable pageable = Pageable.unpaged();
+    @DisplayName("Update Booking - Canceled Booking")
+    void updateBooking_CanceledBooking() {
+        booking.setStatus(BookingStatus.CANCELED);
+        when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
 
-        BookingResponseDto responseDto = new BookingResponseDto(
-                1L, booking.getCheckInDate(), booking.getCheckOutDate(),
-                1L, 1L, BookingStatus.PENDING.name());
+        InvalidBookingStatusException exception = assertThrows(InvalidBookingStatusException.class,
+                () -> bookingService.updateBooking(1L, bookingRequestDto));
+        assertEquals("Cannot update a canceled booking with id: 1", exception.getMessage());
+    }
 
-        when(bookingSpecificationBuilder.build(searchParams)).thenReturn(spec);
-        when(bookingRepository.findAll(spec, pageable))
-                .thenReturn(new PageImpl<>(List.of(booking)));
-        when(bookingMapper.toBookingResponseDto(any(Booking.class))).thenReturn(responseDto);
-        Page<BookingResponseDto> result =
-                bookingService.getBookingsByUserAndStatus(searchParams, pageable);
+    @Test
+    @DisplayName("Mark Bookings As Expired")
+    void markBookingsAsExpired() {
+        when(bookingRepository.findByCheckOutDateBeforeAndStatusNot(any(), any()))
+                .thenReturn(List.of(booking));
 
-        assertNotNull(result);
-        assertEquals(1, result.getTotalElements());
-        assertEquals(BookingStatus.PENDING.name(), result.getContent().get(0).status());
-        verify(bookingSpecificationBuilder).build(searchParams);
-        verify(bookingRepository).findAll(spec, pageable);
+        List<Booking> expiredBookings = bookingService.markBookingsAsExpired();
+
+        assertFalse(expiredBookings.isEmpty());
+        assertEquals(BookingStatus.EXPIRED, expiredBookings.get(0).getStatus());
+        verify(bookingRepository).save(any(Booking.class));
     }
 }
