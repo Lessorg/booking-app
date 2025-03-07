@@ -10,6 +10,8 @@ public class BookingAppApplication {
         Dotenv dotenv = Dotenv.load();
         System.setProperty("TELEGRAM_BOT_TOKEN", dotenv.get("TELEGRAM_BOT_TOKEN"));
         System.setProperty("TELEGRAM_CHAT_ID", dotenv.get("TELEGRAM_CHAT_ID"));
+        System.setProperty("STRIPE_API_KEY", dotenv.get("STRIPE_API_KEY"));
+        System.setProperty("APP_BASE_URL", dotenv.get("APP_BASE_URL"));
 
         SpringApplication.run(BookingAppApplication.class, args);
     }

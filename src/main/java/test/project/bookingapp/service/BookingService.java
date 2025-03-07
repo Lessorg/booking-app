@@ -16,14 +16,16 @@ import test.project.bookingapp.dto.bookingdtos.BookingSearchParametersDto;
 import test.project.bookingapp.events.BookingNotificationEvent;
 import test.project.bookingapp.exception.BookingConflictException;
 import test.project.bookingapp.exception.EntityNotFoundException;
-import test.project.bookingapp.exception.InvalidBookingStatusException;
+import test.project.bookingapp.exception.InvalidStatusException;
 import test.project.bookingapp.mapper.BookingMapper;
 import test.project.bookingapp.model.User;
 import test.project.bookingapp.model.accommodation.Accommodation;
 import test.project.bookingapp.model.booking.Booking;
 import test.project.bookingapp.model.booking.BookingStatus;
+import test.project.bookingapp.model.payment.PaymentStatus;
 import test.project.bookingapp.model.role.Role;
 import test.project.bookingapp.model.role.RoleName;
+import test.project.bookingapp.repository.PaymentRepository;
 import test.project.bookingapp.repository.booking.BookingRepository;
 import test.project.bookingapp.repository.booking.specification.BookingSpecificationBuilder;
 import test.project.bookingapp.service.impl.JwtAuthenticationService;
@@ -38,8 +40,15 @@ public class BookingService {
     private final BookingMapper bookingMapper;
     private final BookingSpecificationBuilder bookingSpecificationBuilder;
     private final ApplicationEventPublisher eventPublisher;
+    private final PaymentRepository paymentRepository;
 
     public BookingResponseDto createBooking(Long userId, BookingRequestDto request) {
+        if (hasPendingPayments(userId)) {
+            throw new IllegalStateException(
+                    "You cannot create a new booking until "
+                            + "your previous payment is not completed.");
+        }
+
         Accommodation accommodation =
                 accommodationService.findAccommodationById(request.accommodationId());
         validateAvailability(accommodation.getId(), request.checkInDate(), request.checkOutDate());
@@ -83,11 +92,15 @@ public class BookingService {
         Booking booking = findBookingById(id);
 
         if (booking.getStatus() == BookingStatus.CANCELED) {
-            throw new InvalidBookingStatusException(
+            throw new InvalidStatusException(
                     "Cannot update a canceled booking with id: " + id);
         }
         validateAvailability(request.accommodationId(), request.checkInDate(),
                 request.checkOutDate());
+
+        Accommodation newAccommodation =
+                accommodationService.findAccommodationById(request.accommodationId());
+        booking.setAccommodation(newAccommodation);
 
         bookingMapper.updateBookingEntity(booking, request);
         Booking updatedBooking = bookingRepository.save(booking);
@@ -99,7 +112,7 @@ public class BookingService {
 
         validateAccess(userId, booking);
         if (booking.getStatus() == BookingStatus.CANCELED) {
-            throw new InvalidBookingStatusException("Booking with id: "
+            throw new InvalidStatusException("Booking with id: "
                     + booking.getId() + " has already been canceled.");
         }
 
@@ -128,15 +141,19 @@ public class BookingService {
         return expiredBookings;
     }
 
-    private List<Booking> findExpiredBookings(LocalDate thresholdDate) {
-        return bookingRepository.findByCheckOutDateBeforeAndStatusNot(thresholdDate,
-                BookingStatus.CANCELED);
-    }
-
-    private Booking findBookingById(Long id) {
+    public Booking findBookingById(Long id) {
         return bookingRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Booking not found with id: " + id));
+    }
+
+    private boolean hasPendingPayments(Long userId) {
+        return paymentRepository.existsByBooking_User_IdAndStatus(userId, PaymentStatus.PENDING);
+    }
+
+    private List<Booking> findExpiredBookings(LocalDate thresholdDate) {
+        return bookingRepository.findByCheckOutDateBeforeAndStatusNot(thresholdDate,
+                BookingStatus.CANCELED);
     }
 
     private void validateAvailability(Long accommodationId, LocalDate checkIn,

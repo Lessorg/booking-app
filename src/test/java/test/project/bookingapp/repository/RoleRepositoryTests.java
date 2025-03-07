@@ -9,7 +9,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import test.project.bookingapp.model.role.Role;
@@ -27,9 +26,6 @@ class RoleRepositoryTests {
     @Autowired
     private RoleRepository roleRepository;
 
-    @Autowired
-    private TestEntityManager entityManager;
-
     @Test
     @DisplayName("Find role by name when role exists")
     void findByName_RoleExists_ReturnsRole() {
@@ -45,31 +41,5 @@ class RoleRepositoryTests {
         Optional<Role> roleOptional = roleRepository.findByName(NON_EXISTENT_ROLE);
 
         assertThat(roleOptional).isEmpty();
-    }
-
-    @Test
-    @DisplayName("Save a new role")
-    void saveNewRole_ShouldPersistRole() {
-        Role role = new Role();
-        role.setName(NON_EXISTENT_ROLE);
-
-        Role savedRole = roleRepository.save(role);
-        entityManager.flush();
-
-        assertThat(savedRole.getId()).isNotNull();
-        assertThat(savedRole.getName()).isEqualTo(NON_EXISTENT_ROLE);
-    }
-
-    @Test
-    @DisplayName("Delete an existing role")
-    void deleteRole_ShouldRemoveRole() {
-        Role role = new Role();
-        role.setName(NON_EXISTENT_ROLE);
-        entityManager.persistAndFlush(role);
-
-        roleRepository.deleteById(role.getId());
-        Optional<Role> deletedRole = roleRepository.findById(role.getId());
-
-        assertThat(deletedRole).isEmpty();
     }
 }

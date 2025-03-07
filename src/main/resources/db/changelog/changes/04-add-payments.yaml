@@ -1,0 +1,56 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-payments-table
+      author: Nikolai
+      changes:
+        - createTable:
+            tableName: payments
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: booking_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: session_url
+                  type: varchar(512)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: session_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount
+                  type: numeric(10,2)
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: payments
+            baseColumnNames: booking_id
+            referencedTableName: bookings
+            referencedColumnNames: id
+            constraintName: fk_payments_booking
+            onDelete: CASCADE
+
+  - changeSet:
+      id: update-payment-id-sequence
+      author: Nikolai
+      changes:
+        - sql:
+            dbms: postgresql
+            splitStatements: false
+            sql: |
+              SELECT setval('payments_id_seq', (SELECT MAX(id) FROM payments));

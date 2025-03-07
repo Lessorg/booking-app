@@ -23,6 +23,9 @@ public interface BookingMapper {
                             Accommodation accommodation,
                             BookingStatus status);
 
+    @Mapping(source = "request.checkInDate", target = "checkInDate")
+    @Mapping(source = "request.checkOutDate", target = "checkOutDate")
+    @Mapping(target = "status", ignore = true)
     @Mapping(target = "id", ignore = true)
     void updateBookingEntity(@MappingTarget Booking booking, BookingRequestDto request);
 }

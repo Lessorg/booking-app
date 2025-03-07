@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -22,6 +23,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.jmx.export.notification.UnableToSendNotificationException;
 import test.project.bookingapp.dto.accommodationdtos.AccommodationRequestDto;
 import test.project.bookingapp.dto.accommodationdtos.AccommodationResponseDto;
 import test.project.bookingapp.exception.EntityNotFoundException;
@@ -34,13 +36,10 @@ import test.project.bookingapp.repository.AccommodationRepository;
 class AccommodationServiceTests {
     @Mock
     private AccommodationRepository accommodationRepository;
-
     @Mock
     private AccommodationMapper accommodationMapper;
-
     @Mock
     private ApplicationEventPublisher eventPublisher;
-
     @InjectMocks
     private AccommodationService accommodationService;
 
@@ -175,6 +174,35 @@ class AccommodationServiceTests {
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
                 () -> accommodationService.deleteAccommodation(1L));
+
+        assertEquals("Accommodation not found with id: 1", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Create Accommodation - Unable to Send Notification Exception")
+    void createAccommodation_NotificationFailure() {
+        when(accommodationMapper.toEntity(accommodationRequestDto))
+                .thenReturn(accommodation);
+        when(accommodationRepository.save(accommodation)).thenReturn(accommodation);
+
+        doThrow(new RuntimeException("Notification service down"))
+                .when(eventPublisher).publishEvent(any());
+
+        UnableToSendNotificationException exception =
+                assertThrows(UnableToSendNotificationException.class,
+                        () -> accommodationService.createAccommodation(accommodationRequestDto));
+
+        assertEquals("Failed to send notification for accommodation ID: 1",
+                exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Update Accommodation - Entity Not Found")
+    void updateAccommodation_NotFound() {
+        when(accommodationRepository.findById(1L)).thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> accommodationService.updateAccommodation(1L, accommodationRequestDto));
 
         assertEquals("Accommodation not found with id: 1", exception.getMessage());
     }

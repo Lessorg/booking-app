@@ -22,4 +22,6 @@ public interface AuthenticationService {
     UserResponseDto updateUserProfile(Long userId, UserUpdateRequestDto request);
 
     User findUserById(Long id);
+
+    User findUserByUsername(String username);
 }

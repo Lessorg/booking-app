@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,8 +14,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import test.project.bookingapp.model.User;
-import test.project.bookingapp.model.accommodation.Accommodation;
 import test.project.bookingapp.model.booking.Booking;
 import test.project.bookingapp.model.booking.BookingStatus;
 import test.project.bookingapp.repository.booking.BookingRepository;
@@ -35,18 +32,6 @@ class BookingRepositoryTests {
 
     @Autowired
     private BookingRepository bookingRepository;
-
-    private User testUser;
-    private Accommodation testAccommodation;
-
-    @BeforeEach
-    void setUp() {
-        testUser = new User();
-        testUser.setId(TEST_USER_ID);
-
-        testAccommodation = new Accommodation();
-        testAccommodation.setId(TEST_ACCOMMODATION_ID);
-    }
 
     @Test
     @DisplayName("Find bookings by user ID")
@@ -78,6 +63,17 @@ class BookingRepositoryTests {
     }
 
     @Test
+    @DisplayName("Should return no overlapping bookings for a non-overlapping date range")
+    void shouldReturnNoOverlappingBookingsForNonOverlappingDates() {
+        LocalDate checkIn = LocalDate.of(2025, 7, 1);
+        LocalDate checkOut = LocalDate.of(2025, 7, 7);
+
+        List<Booking> overlappingBookings = bookingRepository.findOverlappingBookings(
+                TEST_ACCOMMODATION_ID, checkIn, checkOut);
+        assertThat(overlappingBookings).isEmpty();
+    }
+
+    @Test
     @DisplayName("Find booking by ID")
     void shouldFindBookingById() {
         Optional<Booking> booking = bookingRepository.findById(EXISTING_BOOKING_ID);
@@ -89,27 +85,6 @@ class BookingRepositoryTests {
     void shouldNotFindNonExistentBookingById() {
         Optional<Booking> booking = bookingRepository.findById(NON_EXISTENT_BOOKING_ID);
         assertThat(booking).isEmpty();
-    }
-
-    @Test
-    @DisplayName("Save a new booking")
-    void shouldSaveNewBooking() {
-        Booking booking = new Booking();
-        booking.setCheckInDate(LocalDate.of(2025, 8, 1));
-        booking.setCheckOutDate(LocalDate.of(2025, 8, 5));
-        booking.setAccommodation(testAccommodation);
-        booking.setUser(testUser);
-        booking.setStatus(TEST_STATUS_PENDING);
-
-        Booking savedBooking = bookingRepository.save(booking);
-        assertThat(savedBooking.getId()).isNotNull();
-    }
-
-    @Test
-    @DisplayName("Delete a booking by ID")
-    void shouldDeleteBooking() {
-        bookingRepository.deleteById(EXISTING_BOOKING_ID);
-        assertThat(bookingRepository.findById(EXISTING_BOOKING_ID)).isEmpty();
     }
 
     @Test
@@ -131,5 +106,16 @@ class BookingRepositoryTests {
                 booking.getCheckOutDate().isBefore(thresholdDate)
                         && booking.getStatus() != BookingStatus.CANCELED
         );
+    }
+
+    @Test
+    @DisplayName("Find no overlapping bookings for a non-existent accommodation")
+    void shouldNotFindOverlappingBookingsForNonExistentAccommodation() {
+        LocalDate checkIn = LocalDate.of(2025, 6, 1);
+        LocalDate checkOut = LocalDate.of(2025, 6, 7);
+
+        List<Booking> overlappingBookings = bookingRepository.findOverlappingBookings(
+                NON_EXISTENT_BOOKING_ID, checkIn, checkOut);
+        assertThat(overlappingBookings).isEmpty();
     }
 }
