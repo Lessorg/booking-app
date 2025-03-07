@@ -41,6 +41,7 @@ public class JwtAuthenticationService implements AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final Set<RoleName> defaultUserRoles = Collections.singleton(RoleName.ROLE_CUSTOMER);
 
+    @Override
     public UserLoginResponseDto authenticate(UserLoginRequestDto request) {
         try {
             authenticationManager.authenticate(
@@ -53,6 +54,7 @@ public class JwtAuthenticationService implements AuthenticationService {
         return new UserLoginResponseDto(token);
     }
 
+    @Override
     public UserResponseDto register(UserRegistrationRequestDto requestDto)
             throws RegistrationException {
         if (userRepository.existsByEmail(requestDto.email())) {
@@ -67,6 +69,7 @@ public class JwtAuthenticationService implements AuthenticationService {
         return userMapper.toUserResponseDto(user);
     }
 
+    @Override
     public UserRoleUpdateResponseDto updateUserRole(Long id, UserRoleUpdateRequestDto request) {
         User user = findUserById(id);
         user.setRoles(getRoles(request.roles()));
@@ -74,10 +77,12 @@ public class JwtAuthenticationService implements AuthenticationService {
         return userMapper.toUserRoleUpdateResponseDto(updatedUser);
     }
 
+    @Override
     public UserResponseDto getUserProfile(Long userId) {
         return userMapper.toUserResponseDto(findUserById(userId));
     }
 
+    @Override
     public UserResponseDto updateUserProfile(Long userId, UserUpdateRequestDto request) {
         User user = findUserById(userId);
 
@@ -91,9 +96,15 @@ public class JwtAuthenticationService implements AuthenticationService {
         return userMapper.toUserResponseDto(updatedUser);
     }
 
+    @Override
     public User findUserById(Long id) {
         return userRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Can't find user by id: " + id));
+    }
+
+    @Override
+    public User findUserByUsername(String username) {
+        return null;
     }
 
     private Set<Role> getRoles(Set<RoleName> roles) {

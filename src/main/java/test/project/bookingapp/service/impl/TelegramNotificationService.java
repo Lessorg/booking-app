@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import test.project.bookingapp.events.BookingNotificationEvent;
 import test.project.bookingapp.model.booking.Booking;
+import test.project.bookingapp.model.payment.Payment;
 import test.project.bookingapp.service.BookingService;
 import test.project.bookingapp.service.NotificationService;
 
@@ -40,6 +41,22 @@ public class TelegramNotificationService implements NotificationService {
         String url = String.format("%s%s/sendMessage?chat_id=%s&text=%s",
                 telegramApiUrl, botToken, chatId, message);
         restTemplate.getForObject(url, String.class);
+    }
+
+    @Override
+    public void sendPaymentSuccessNotification(Payment payment) {
+        String message = String.format(
+                "Payment successful! 💸\n"
+                        + "💳 Payment ID: %s\n"
+                        + "💰 Amount: $%.2f\n"
+                        + "🏠 Booking ID: %s\n"
+                        + "👤 Customer: %s",
+                payment.getSessionId(),
+                payment.getAmount(),
+                payment.getBooking().getId(),
+                payment.getBooking().getUser().getUsername()
+        );
+        sendNotification(message);
     }
 
     @Override

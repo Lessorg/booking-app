@@ -14,14 +14,17 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import test.project.bookingapp.config.WithMockCustomUser;
 import test.project.bookingapp.dto.bookingdtos.BookingRequestDto;
@@ -33,6 +36,9 @@ import test.project.bookingapp.model.role.RoleName;
 @Sql(scripts = "/db/add-test-bookings.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class BookingControllerTests {
     protected static MockMvc mockMvc;
+
+    @MockBean
+    private RestTemplate restTemplate;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -54,6 +60,9 @@ class BookingControllerTests {
                 LocalDate.now().plusDays(5),
                 10L
         );
+
+        Mockito.when(restTemplate.getForObject(Mockito.anyString(), Mockito.eq(String.class)))
+                .thenReturn("{\"ok\":true}");
 
         mockMvc.perform(post("/bookings")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -110,7 +119,7 @@ class BookingControllerTests {
         BookingRequestDto updateRequest = new BookingRequestDto(
                 LocalDate.now().plusDays(3),
                 LocalDate.now().plusDays(6),
-                1L
+                11L
         );
 
         mockMvc.perform(put("/bookings/{id}", 100L)
@@ -130,7 +139,7 @@ class BookingControllerTests {
         BookingRequestDto updateRequest = new BookingRequestDto(
                 LocalDate.now().plusDays(4),
                 LocalDate.now().plusDays(7),
-                1L
+                11L
         );
 
         mockMvc.perform(patch("/bookings/{id}", 100L)
@@ -147,6 +156,9 @@ class BookingControllerTests {
     @DisplayName("Should delete booking")
     @WithMockCustomUser(id = 20L)
     void cancelBooking_ShouldReturnNoContent() throws Exception {
+        Mockito.when(restTemplate.getForObject(Mockito.anyString(), Mockito.eq(String.class)))
+                .thenReturn("{\"ok\":true}");
+
         mockMvc.perform(delete("/bookings/{id}", 100L)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());

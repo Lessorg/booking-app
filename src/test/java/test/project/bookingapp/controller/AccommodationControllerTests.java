@@ -16,9 +16,11 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -27,6 +29,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import test.project.bookingapp.dto.accommodationdtos.AccommodationRequestDto;
 import test.project.bookingapp.dto.accommodationdtos.AccommodationResponseDto;
@@ -40,6 +43,8 @@ import test.project.bookingapp.model.accommodation.AccommodationType;
 class AccommodationControllerTests {
     protected static MockMvc mockMvc;
 
+    @MockBean
+    private RestTemplate restTemplate;
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -74,6 +79,9 @@ class AccommodationControllerTests {
                 new BigDecimal("150.0"),
                 5
         );
+
+        Mockito.when(restTemplate.getForObject(Mockito.anyString(), Mockito.eq(String.class)))
+                .thenReturn("{\"ok\":true}");
 
         mockMvc.perform(post("/accommodations")
                         .contentType(MediaType.APPLICATION_JSON)

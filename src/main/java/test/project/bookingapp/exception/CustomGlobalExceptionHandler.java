@@ -85,9 +85,9 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
         return new ResponseEntity<>(body, new HttpHeaders(), HttpStatus.CONFLICT);
     }
 
-    @ExceptionHandler(InvalidBookingStatusException.class)
+    @ExceptionHandler(InvalidStatusException.class)
     public ResponseEntity<Object> handleInvalidBookingStatusException(
-            InvalidBookingStatusException ex, WebRequest request) {
+            InvalidStatusException ex, WebRequest request) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.BAD_REQUEST);

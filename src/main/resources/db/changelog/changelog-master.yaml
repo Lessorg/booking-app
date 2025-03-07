@@ -5,3 +5,5 @@ databaseChangeLog:
       file: db/changelog/changes/02-add-accommodations.yaml
   - include:
       file: db/changelog/changes/03-add-bookings.yaml
+  - include:
+      file: db/changelog/changes/04-add-payments.yaml
