@@ -37,6 +37,10 @@ databaseChangeLog:
                   type: numeric(10,2)
                   constraints:
                     nullable: false
+        - addUniqueConstraint:
+            tableName: payments
+            columnNames: session_id
+            constraintName: uq_payments_session_id
         - addForeignKeyConstraint:
             baseTableName: payments
             baseColumnNames: booking_id

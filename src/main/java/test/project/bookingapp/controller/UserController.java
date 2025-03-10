@@ -1,6 +1,7 @@
 package test.project.bookingapp.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import test.project.bookingapp.service.impl.JwtAuthenticationService;
 
 @RequiredArgsConstructor
 @RestController
+@SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/users")
 @Tag(name = "User", description = "Endpoints for user profile and role management")
 public class UserController {
@@ -49,8 +51,17 @@ public class UserController {
             description = "Allows the currently authenticated user to update their profile details")
     @PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
     @PatchMapping("/me")
+    public UserResponseDto updateProfilePatch(
+            Authentication authentication,
+            @Valid @RequestBody UserUpdateRequestDto request) {
+        return jwtAuthenticationService.updateUserProfile(getUserId(authentication), request);
+    }
+
+    @Operation(summary = "Update current user profile",
+            description = "Allows the currently authenticated user to update their profile details")
+    @PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
     @PutMapping("/me")
-    public UserResponseDto updateProfile(
+    public UserResponseDto updateProfilePut(
             Authentication authentication,
             @Valid @RequestBody UserUpdateRequestDto request) {
         return jwtAuthenticationService.updateUserProfile(getUserId(authentication), request);
