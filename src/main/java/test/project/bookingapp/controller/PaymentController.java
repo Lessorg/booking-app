@@ -1,6 +1,7 @@
 package test.project.bookingapp.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,16 +25,15 @@ import test.project.bookingapp.dto.payment.CanceledPaymentResponseDto;
 import test.project.bookingapp.dto.payment.PaymentRequestDto;
 import test.project.bookingapp.dto.payment.PaymentResponseDto;
 import test.project.bookingapp.model.User;
-import test.project.bookingapp.service.AuthenticationService;
 import test.project.bookingapp.service.PaymentService;
 
 @RequiredArgsConstructor
 @RestController
+@SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/payments")
 @Tag(name = "Payments", description = "Endpoints for managing payments")
 public class PaymentController {
     private final PaymentService paymentService;
-    private final AuthenticationService authenticationService;
 
     @Operation(summary = "Retrieve payments", description =
             "Allows customers to view their payments and managers to view all payments.")

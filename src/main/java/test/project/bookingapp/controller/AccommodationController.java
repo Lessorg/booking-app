@@ -1,6 +1,7 @@
 package test.project.bookingapp.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ import test.project.bookingapp.service.AccommodationService;
 
 @RequiredArgsConstructor
 @RestController
+@SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/accommodations")
 @Tag(name = "Accommodation", description = "Endpoints for managing accommodations")
 public class AccommodationController {
